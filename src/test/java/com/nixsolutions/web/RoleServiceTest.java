@@ -1,4 +1,4 @@
-package com.nixsolutions.service;
+package com.nixsolutions.web;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -8,6 +8,7 @@ import com.github.springtestdbunit.DbUnitTestExecutionListener;
 
 import com.nixsolutions.config.DbConfig;
 import com.nixsolutions.domain.Role;
+import com.nixsolutions.service.RoleDao;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

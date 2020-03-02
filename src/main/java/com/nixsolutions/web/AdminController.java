@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -46,29 +47,58 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public String submitAdd(@ModelAttribute("userDto") @Valid UserDto userDto
-        , BindingResult result, ModelMap modelMap) {
-        isUniqueLogin(userDto, result);
-        isUniqueEmail(userDto, result);
-        if (!userDto.getPassword().isEmpty()) {
-            isValidPasswords(userDto, result);
+    protected String submitAdd(@Valid @ModelAttribute("userDto") UserDto userDto,
+                               BindingResult bindingResult, Model model,
+                               @RequestParam("passwordAgain") String passwordAgain) {
+
+        if (!isUniqueLogin(userDto)) {
+            FieldError loginAlreadyUse = new FieldError("login", "login",
+                    "login already in use");
+            bindingResult.addError(loginAlreadyUse);
         }
-        if (result.hasErrors()) {
-            modelMap.addAttribute("roles", roleService.findAll());
-            modelMap.addAttribute("users", userService.findAll());
+
+        if (!passwordAgain.equals(userDto.getPassword())) {
+            FieldError passwordNotEquals = new FieldError("password",
+                    "password", "password not equals");
+            bindingResult.addError(passwordNotEquals);
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("error",
+                    bindingResult.getFieldError().getDefaultMessage());
+            model.addAttribute("roles", roleService.findAll());
+            model.addAttribute("userDto", userDto);
             return "add";
         }
-        User user = UserDto.dtoToUser(userDto);
-        userService.create(user);
+        try {
+            User user = UserDto.dtoToUser(userDto);
+            userService.create(user);
+            model.addAttribute("error", "user successfully created");
+            model.addAttribute("users", userService.findAll());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e.getCause());
+        }
         return "redirect:admin";
     }
 
+    protected boolean isUniqueLogin(UserDto userDto) {
+        for (User user : userService.findAll()) {
+            if (user.getLogin().equals(userDto.getLogin())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @RequestMapping(value = "/delete", method = RequestMethod.GET)
-    public String deleteUser(HttpServletRequest req) {
-        Long id = Long.parseLong(req.getParameter("userId"));
-        User user = (User) userService.findById(id);
+    public ModelAndView delete(
+            HttpServletRequest req) {
+        ModelAndView modelAndView = new ModelAndView("redirect:/admin");
+        String loginToDelete = req.getParameter("userLogin");
+        User user = userService.findByLogin(loginToDelete);
         userService.remove(user);
-        return "redirect:admin";
+        modelAndView.addObject("users", userService.findAll());
+        return modelAndView;
     }
 
     @RequestMapping(value = "/edit", method = RequestMethod.GET)
@@ -83,79 +113,45 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
-    public String submitEdit(@ModelAttribute("userDto") @Valid UserDto userDto
-        , BindingResult result, ModelMap modelMap) {
-        checkEditEmail(userDto, result);
-        isValidPasswords(userDto, result);
-        if (result.hasErrors()) {
-            modelMap.put("roles", roleService.findAll());
-            modelMap.put("users", userService.findAll());
+    protected String submitEdit(@Valid @ModelAttribute("userDto") UserDto userDto,
+                                BindingResult bindingResult, Model model,
+                                @RequestParam("passwordAgain") String passwordAgain
+            , @RequestParam("password") String password) {
+        String login = userDto.getLogin();
+        User user = userService.findByLogin(login);
+        userDto.setUserId(user.getUserId());
+
+        if (password.isEmpty() && passwordAgain.isEmpty()) {
+            passwordAgain = user.getPassword();
+            if (!passwordAgain.equals(user.getPassword())) {
+                FieldError passwordNotEquals = new FieldError("password",
+                        "password", "password not equals");
+                bindingResult.addError(passwordNotEquals);
+            }
+        } else if (!passwordAgain.equals(password)) {
+            FieldError passwordNotEquals = new FieldError("password",
+                    "password", "password not equals");
+            bindingResult.addError(passwordNotEquals);
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", roleService.findAll());
+            model.addAttribute("logintoedit", login);
+            model.addAttribute("error",
+                    bindingResult.getFieldError().getDefaultMessage());
             return "edit";
         }
-        User user = UserDto.dtoToUser(userDto);
-        userService.update(user);
+        try {
+            User user1 = UserDto.dtoToUser(userDto);
+            userService.update(user1);
+            model.addAttribute("users", userService.findAll());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e.getCause());
+        }
+        model.addAttribute("error", "Successfully update");
         return "redirect:admin";
     }
 
-    private void isValidPasswords(UserDto userDto, BindingResult result) {
-        if (!userDto.getPassword().equals(userDto.getPasswordAgain())) {
-            result.rejectValue("password", "passwordsNotEquals");
-        }
-    }
-
-    private void isUniqueLogin(UserDto userDto, BindingResult result) {
-        User user = userService.findByLogin(userDto.getLogin());
-        if (user != null) {
-            result.rejectValue("login", "loginExists");
-        }
-    }
-
-    private void isUniqueEmail(UserDto userDto, BindingResult result) {
-        User user = userService.findByEmail(userDto.getEmail());
-        if (user != null) {
-            result.rejectValue("email", "emailExists");
-        }
-    }
-
-    private void checkEditEmail(UserDto userDto, BindingResult result) {
-        User user = userService.findByEmail(userDto.getEmail());
-        if (user != null && !userDto.getLogin().equals(user.getLogin())) {
-            result.rejectValue("email", "emailExists");
-        }
-    }
-
-    @RequestMapping(value = "/registration", method = RequestMethod.GET)
-    public String loadFormPage(Model model) {
-        model.addAttribute("userDto", new UserDto());
-        //new RegistrationUserDto());
-        return "registration";
-    }
-
-    @RequestMapping(value = "/registration", method = RequestMethod.POST)
-    public ModelAndView submitForm(@ModelAttribute("userDto") @Valid UserDto userDto
-                                   //RegistrationUserDto userDto
-        , BindingResult result, HttpServletRequest request) {
-        isUniqueLogin(userDto, result);
-        isUniqueEmail(userDto, result);
-        isValidPasswords(userDto, result);
-//        isValidCaptcha(request, userDto, result);
-        if (result.hasErrors()) {
-            return new ModelAndView("registration", "userDto", userDto);
-        }
-        userDto.setRole(roleService.findById(2L));
-        User user = UserDto.dtoToUser(userDto);
-        userService.create(user);
-        return new ModelAndView("user", "userDto", userDto);
-    }
-
-//    private void isValidCaptcha(HttpServletRequest request, RegistrationUserDto userDto, BindingResult result) {
-//        String captchaId = (String) request.getSession().getAttribute(
-//                Constants.KAPTCHA_SESSION_KEY);
-//        String response = userDto.getCaptcha();
-//        if (!response.equalsIgnoreCase(captchaId)) {
-//            result.rejectValue("captcha", "InvalidCaptcha", "Invalid Entry");
-//        }
-//    }
 
 
 }

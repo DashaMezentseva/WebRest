@@ -1,11 +1,15 @@
 package com.nixsolutions.config;
 
+import com.nixsolutions.domain.Role;
+import com.nixsolutions.dto.RoleFormatter;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.format.Formatter;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -32,6 +36,15 @@ public class WebConfig implements WebMvcConfigurer {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
         return messageSource;
+    }
+
+    @Bean
+    public Formatter<Role> roleFormatter(){
+        return new RoleFormatter();
+    }
+
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addFormatterForFieldType(Role.class, roleFormatter());
     }
 
 //    @Bean

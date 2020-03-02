@@ -3,15 +3,24 @@ package com.nixsolutions.web;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
+import com.google.code.kaptcha.Constants;
 import com.nixsolutions.domain.User;
+import com.nixsolutions.dto.RegistrationUserDto;
+import com.nixsolutions.dto.UserDto;
 import com.nixsolutions.service.RoleDao;
 import com.nixsolutions.service.UserDao;
+
 import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,30 +49,6 @@ public class LoginController {
         return "login";
     }
 
-
-//
-//    @RequestMapping(value = {"/login"}, method = POST)
-//    public String loginUser(@RequestParam(name = "username", required = true) String login,
-//                            @RequestParam(name = "password", required = true) String password, Model model, HttpSession session) {
-//        User user = userService.findByLogin(login);
-//
-//
-//        if (user.getUserId() != null && user.getPassword().equals(password)) {
-//            model.addAttribute("loggedUser", user);
-//            session.setAttribute("login", login);
-//            if (user.getRole().getName().equals("admin")) {
-//                return "redirect:admin";
-//            } else {
-//                model.addAttribute("userName", user.getLogin());
-//                return "user";
-//            }
-//
-//        }
-//        model.addAttribute("message",
-//            "Wrong users name or password");
-//        return "login";
-//    }
-
     @RequestMapping(method = GET, value = {"*/logout", "/logout"})
     public String logout(HttpServletRequest request) {
         request.getSession().invalidate();
@@ -72,7 +57,7 @@ public class LoginController {
 
     @RequestMapping(method = GET, value = "/home")
     public ModelAndView process(
-        Principal principal, HttpSession session) {
+            Principal principal, HttpSession session) {
         ModelAndView modelAndViewUser = new ModelAndView("redirect:user");
         ModelAndView modelAndViewAdmin = new ModelAndView("redirect:admin");
         String login = principal.getName();
@@ -87,6 +72,98 @@ public class LoginController {
         }
 
         return new ModelAndView("redirect:login");
+    }
+
+    //    private void isValidPasswords(UserDto userDto, BindingResult result) {
+//        if (!userDto.getPassword().equals(userDto.getPasswordAgain())) {
+//            result.rejectValue("password", "passwordsNotEquals");
+//        }
+//    }
+//
+//    private void isUniqueLogin(UserDto userDto, BindingResult result) {
+//        User user = userService.findByLogin(userDto.getLogin());
+//        if (user != null) {
+//            result.rejectValue("login", "loginExists");
+//        }
+//    }
+//
+//    private void isUniqueEmail(UserDto userDto, BindingResult result) {
+//        User user = userService.findByEmail(userDto.getEmail());
+//        if (user != null) {
+//            result.rejectValue("email", "emailExists");
+//        }
+//    }
+
+    @RequestMapping(value = "/registration", method = RequestMethod.GET)
+    public String loadFormPage(Model model) {
+        model.addAttribute("userDto", new RegistrationUserDto());
+        return "registration";
+    }
+
+    @RequestMapping(value = "/registration", method = RequestMethod.POST)
+    public String submitForm(@Valid @ModelAttribute("userDto") RegistrationUserDto userDto, Model model, BindingResult bindingResult,
+                             @RequestParam("passwordAgain") String passwordAgain, HttpServletRequest request) {
+        if (!isUniqueLogin(userDto)) {
+            FieldError loginAlreadyUse = new FieldError("login", "login",
+                    "login already in use");
+            bindingResult.addError(loginAlreadyUse);
+        }
+        if (!isUniqueEmail(userDto)) {
+            FieldError emailAlreadyUse = new FieldError("email", "email",
+                    "email already in use");
+            bindingResult.addError(emailAlreadyUse);
+        }
+
+        if (!passwordAgain.equals(userDto.getPassword())) {
+            FieldError passwordNotEquals = new FieldError("password",
+                    "password", "password not equals");
+            bindingResult.addError(passwordNotEquals);
+        }
+        isCorrectCaptcha(request, userDto, bindingResult);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("error",
+                    bindingResult.getFieldError().getDefaultMessage());
+            model.addAttribute("roles", roleService.findAll());
+            model.addAttribute("userDto", userDto);
+            return "registration";
+        }
+        try {
+            userDto.setRole(roleService.findById(1L));
+            User user = UserDto.dtoToUser(userDto);
+            userService.create(user);
+            model.addAttribute("error", "user successfully created");
+            model.addAttribute("users", userService.findAll());
+            model.addAttribute("userName", user.getLogin());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e.getCause());
+        }
+        return "user";
+
+    }
+
+    protected boolean isUniqueLogin (RegistrationUserDto userDto){
+        for (User user : userService.findAll()) {
+            if (user.getLogin().equals(userDto.getLogin())) {
+                return false;
+            }
+        }
+        return true;
+    }
+    protected boolean isUniqueEmail (RegistrationUserDto userDto){
+        for (User user : userService.findAll()) {
+            if (user.getEmail().equals(userDto.getEmail())) {
+                return false;
+            }
+        }
+        return true;
+    }
+        private void isCorrectCaptcha(HttpServletRequest request, RegistrationUserDto userDto, BindingResult result) {
+        String captchaId = (String) request.getSession().getAttribute(
+                Constants.KAPTCHA_SESSION_KEY);
+        String response = userDto.getCaptcha();
+        if (!response.equalsIgnoreCase(captchaId)) {
+            result.rejectValue("captcha", "InvalidCaptcha", "Invalid Entry");
+        }
     }
 
 }

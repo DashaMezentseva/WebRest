@@ -1,4 +1,4 @@
-package com.nixsolutions.service;
+package com.nixsolutions.web;
 
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
@@ -10,6 +10,9 @@ import com.nixsolutions.config.DbConfig;
 import com.nixsolutions.domain.User;
 import java.sql.Date;
 import java.util.List;
+
+import com.nixsolutions.service.RoleDao;
+import com.nixsolutions.service.UserDao;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
