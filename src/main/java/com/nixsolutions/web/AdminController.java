@@ -29,6 +29,7 @@ public class AdminController {
 
     @RequestMapping(value = "/admin", method = RequestMethod.GET)
     public ModelAndView homePage(ModelAndView modelAndView, HttpServletRequest req) {
+        modelAndView.addObject("adminName", req.getSession().getAttribute("login"));
         modelAndView.addObject("users", userService.findAll());
         modelAndView.setViewName("admin");
         modelAndView.addObject("adminName", req.getSession().getAttribute("login"));
@@ -45,11 +46,13 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
-    public String submitAdd( @ModelAttribute("userDto") @Valid UserDto userDto
-            , BindingResult result, ModelMap modelMap) {
+    public String submitAdd(@ModelAttribute("userDto") @Valid UserDto userDto
+        , BindingResult result, ModelMap modelMap) {
         isUniqueLogin(userDto, result);
         isUniqueEmail(userDto, result);
-        isValidPasswords(userDto, result);
+        if (!userDto.getPassword().isEmpty()) {
+            isValidPasswords(userDto, result);
+        }
         if (result.hasErrors()) {
             modelMap.addAttribute("roles", roleService.findAll());
             modelMap.addAttribute("users", userService.findAll());
@@ -58,13 +61,6 @@ public class AdminController {
         User user = UserDto.dtoToUser(userDto);
         userService.create(user);
         return "redirect:admin";
-    }
-
-    private void isUniqueLogin(UserDto userDto, BindingResult result) {
-        User user = userService.findByLogin(userDto.getLogin());
-        if (user != null) {
-            result.rejectValue("login", "loginExists");
-        }
     }
 
     @RequestMapping(value = "/delete", method = RequestMethod.GET)
@@ -88,8 +84,8 @@ public class AdminController {
 
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
     public String submitEdit(@ModelAttribute("userDto") @Valid UserDto userDto
-            , BindingResult result, ModelMap modelMap) {
-        isUniqueEmail(userDto, result);
+        , BindingResult result, ModelMap modelMap) {
+        checkEditEmail(userDto, result);
         isValidPasswords(userDto, result);
         if (result.hasErrors()) {
             modelMap.put("roles", roleService.findAll());
@@ -107,9 +103,23 @@ public class AdminController {
         }
     }
 
+    private void isUniqueLogin(UserDto userDto, BindingResult result) {
+        User user = userService.findByLogin(userDto.getLogin());
+        if (user != null) {
+            result.rejectValue("login", "loginExists");
+        }
+    }
+
     private void isUniqueEmail(UserDto userDto, BindingResult result) {
         User user = userService.findByEmail(userDto.getEmail());
-        if (user != null && !userDto.getEmail().equals(user.getEmail())) {
+        if (user != null) {
+            result.rejectValue("email", "emailExists");
+        }
+    }
+
+    private void checkEditEmail(UserDto userDto, BindingResult result) {
+        User user = userService.findByEmail(userDto.getEmail());
+        if (user != null && !userDto.getLogin().equals(user.getLogin())) {
             result.rejectValue("email", "emailExists");
         }
     }
@@ -117,14 +127,14 @@ public class AdminController {
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
     public String loadFormPage(Model model) {
         model.addAttribute("userDto", new UserDto());
-            //new RegistrationUserDto());
+        //new RegistrationUserDto());
         return "registration";
     }
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
-    public ModelAndView submitForm( @ModelAttribute("userDto") @Valid UserDto userDto
-                                      //RegistrationUserDto userDto
-            , BindingResult result, HttpServletRequest request) {
+    public ModelAndView submitForm(@ModelAttribute("userDto") @Valid UserDto userDto
+                                   //RegistrationUserDto userDto
+        , BindingResult result, HttpServletRequest request) {
         isUniqueLogin(userDto, result);
         isUniqueEmail(userDto, result);
         isValidPasswords(userDto, result);

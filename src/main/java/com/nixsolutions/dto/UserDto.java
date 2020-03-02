@@ -2,46 +2,38 @@ package com.nixsolutions.dto;
 
 import com.nixsolutions.domain.Role;
 import com.nixsolutions.domain.User;
-import java.sql.Date;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
+import java.util.Date;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Null;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
+import org.hibernate.validator.constraints.Email;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.format.annotation.DateTimeFormat;
 
 public class UserDto {
 
     protected Long userId;
 
-    @NotNull
-    @NotEmpty
     @Size(min = 4, max = 20)
     protected String login;
 
-    @Size(min = 4, max = 20)
+    //@Size(min = 4, max = 20)
     protected String password;
 
-    @Size(min = 4, max = 20)
+    //@Size(min = 4, max = 20)
     private String passwordAgain;
 
-    @NotNull
-    @NotEmpty
     @Email
     @Size(min = 4, max = 20)
     protected String email;
 
-    @NotNull
     @NotEmpty
     protected String firstName;
 
-    @NotNull
     @NotEmpty
     protected String lastName;
 
     @NotNull
-    @NotEmpty
     @Past
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     protected Date birthday;
@@ -58,7 +50,7 @@ public class UserDto {
     public static User dtoToUser(UserDto userDto) {
         User user = new User(userDto.getUserId(), userDto.getLogin(), userDto.getPassword()
             , userDto.getEmail(), userDto.getFirstName(), userDto.getLastName()
-            , new Date(userDto.getBirthday().getTime()), userDto.getRole());
+            , new java.sql.Date(userDto.getBirthday().getTime()), userDto.getRole());
         return user;
     }
 
