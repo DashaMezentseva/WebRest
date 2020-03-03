@@ -1,5 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jstl/fmt" %>
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <script type='text/javascript' src='https://code.jquery.com/jquery-latest.min.js'></script>
@@ -10,7 +12,7 @@
     <h1> Sign up </h1>
     <br>
     <br>
-    <form:form modelAttribute="userDto" action="registration">
+    <form:form modelAttribute="registrationUserDto" action="registration">
         <table>
             <tr>
                 <td>Login</td>
@@ -44,7 +46,7 @@
             </tr>
             <tr>
                 <td>Birth date</td>
-                <td><form:input path="birthday"/></td>
+                <td><form:input type="date" path="birthday"/></td>
                 <td><form:errors path="birthday"/></td>
             </tr>
 

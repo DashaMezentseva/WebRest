@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.format.Formatter;
 import org.springframework.format.FormatterRegistry;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

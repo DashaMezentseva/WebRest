@@ -13,23 +13,15 @@ import org.springframework.format.annotation.DateTimeFormat;
 public class UserDto {
 
     protected Long userId;
-
     @Size(min = 4, max = 20)
     protected String login;
-
-    //@Size(min = 4, max = 20)
     protected String password;
-
-    //@Size(min = 4, max = 20)
     private String passwordAgain;
-
     @Email
     @Size(min = 4, max = 20)
     protected String email;
-
     @NotEmpty
     protected String firstName;
-
     @NotEmpty
     protected String lastName;
 

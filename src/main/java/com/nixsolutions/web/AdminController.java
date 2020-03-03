@@ -1,6 +1,8 @@
 package com.nixsolutions.web;
 
+import com.google.code.kaptcha.Constants;
 import com.nixsolutions.domain.User;
+import com.nixsolutions.dto.RegistrationUserDto;
 import com.nixsolutions.dto.UserDto;
 import com.nixsolutions.service.RoleDao;
 import com.nixsolutions.service.UserDao;
@@ -55,6 +57,18 @@ public class AdminController {
             FieldError loginAlreadyUse = new FieldError("login", "login",
                     "login already in use");
             bindingResult.addError(loginAlreadyUse);
+        }
+
+        if (userDto.getPassword().isEmpty()){
+            FieldError emptyPassword = new FieldError("password", "password",
+                "password should not be empty");
+            bindingResult.addError(emptyPassword);
+        }
+
+        if (passwordAgain.isEmpty()){
+            FieldError confirmPassword = new FieldError("passwordAgain", "passwordAgain",
+                "confirm your password");
+            bindingResult.addError(confirmPassword);
         }
 
         if (!passwordAgain.equals(userDto.getPassword())) {
@@ -122,12 +136,8 @@ public class AdminController {
         userDto.setUserId(user.getUserId());
 
         if (password.isEmpty() && passwordAgain.isEmpty()) {
+            userDto.setPassword(user.getPassword());
             passwordAgain = user.getPassword();
-            if (!passwordAgain.equals(user.getPassword())) {
-                FieldError passwordNotEquals = new FieldError("password",
-                        "password", "password not equals");
-                bindingResult.addError(passwordNotEquals);
-            }
         } else if (!passwordAgain.equals(password)) {
             FieldError passwordNotEquals = new FieldError("password",
                     "password", "password not equals");
@@ -151,8 +161,6 @@ public class AdminController {
         model.addAttribute("error", "Successfully update");
         return "redirect:admin";
     }
-
-
 
 }
 

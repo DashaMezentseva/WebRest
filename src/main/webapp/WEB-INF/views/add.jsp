@@ -79,7 +79,7 @@
                         Birthday
                     </form:label>
                     </td>
-                    <td><form:input path="birthday"/></td>
+                    <td><form:input type="date" path="birthday"/></td>
                     <td><form:errors path="birthday"/></td>
                 </tr>
                 <tr>

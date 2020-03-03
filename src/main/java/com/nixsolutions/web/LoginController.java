@@ -74,59 +74,52 @@ public class LoginController {
         return new ModelAndView("redirect:login");
     }
 
-    //    private void isValidPasswords(UserDto userDto, BindingResult result) {
-//        if (!userDto.getPassword().equals(userDto.getPasswordAgain())) {
-//            result.rejectValue("password", "passwordsNotEquals");
-//        }
-//    }
-//
-//    private void isUniqueLogin(UserDto userDto, BindingResult result) {
-//        User user = userService.findByLogin(userDto.getLogin());
-//        if (user != null) {
-//            result.rejectValue("login", "loginExists");
-//        }
-//    }
-//
-//    private void isUniqueEmail(UserDto userDto, BindingResult result) {
-//        User user = userService.findByEmail(userDto.getEmail());
-//        if (user != null) {
-//            result.rejectValue("email", "emailExists");
-//        }
-//    }
-
     @RequestMapping(value = "/registration", method = RequestMethod.GET)
     public String loadFormPage(Model model) {
-        model.addAttribute("userDto", new RegistrationUserDto());
+        model.addAttribute("registrationUserDto", new RegistrationUserDto());
         return "registration";
     }
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
-    public String submitForm(@Valid @ModelAttribute("userDto") RegistrationUserDto userDto, Model model, BindingResult bindingResult,
+    public String submitForm(@ModelAttribute("registrationUserDto") RegistrationUserDto userDto, Model model, BindingResult bindingResult,
                              @RequestParam("passwordAgain") String passwordAgain, HttpServletRequest request) {
         if (!isUniqueLogin(userDto)) {
             FieldError loginAlreadyUse = new FieldError("login", "login",
-                    "login already in use");
+                "login already in use");
             bindingResult.addError(loginAlreadyUse);
         }
         if (!isUniqueEmail(userDto)) {
             FieldError emailAlreadyUse = new FieldError("email", "email",
-                    "email already in use");
+                "email already in use");
             bindingResult.addError(emailAlreadyUse);
+        }
+        if (userDto.getPassword().isEmpty()){
+            FieldError emptyPassword = new FieldError("password", "password",
+                "password should not be empty");
+            bindingResult.addError(emptyPassword);
+        }
+
+        if (passwordAgain.isEmpty()){
+            FieldError confirmPassword = new FieldError("passwordAgain", "passwordAgain",
+                "confirm your password");
+            bindingResult.addError(confirmPassword);
         }
 
         if (!passwordAgain.equals(userDto.getPassword())) {
             FieldError passwordNotEquals = new FieldError("password",
-                    "password", "password not equals");
+                "password", "password not equals");
             bindingResult.addError(passwordNotEquals);
         }
         isCorrectCaptcha(request, userDto, bindingResult);
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("error",
-                    bindingResult.getFieldError().getDefaultMessage());
+                bindingResult.getFieldError().getDefaultMessage());
             model.addAttribute("roles", roleService.findAll());
             model.addAttribute("userDto", userDto);
             return "registration";
         }
+
         try {
             userDto.setRole(roleService.findById(1L));
             User user = UserDto.dtoToUser(userDto);
@@ -157,15 +150,14 @@ public class LoginController {
         }
         return true;
     }
-        private void isCorrectCaptcha(HttpServletRequest request, RegistrationUserDto userDto, BindingResult result) {
+    private void isCorrectCaptcha(HttpServletRequest request, RegistrationUserDto userDto, BindingResult result) {
         String captchaId = (String) request.getSession().getAttribute(
-                Constants.KAPTCHA_SESSION_KEY);
+            Constants.KAPTCHA_SESSION_KEY);
         String response = userDto.getCaptcha();
         if (!response.equalsIgnoreCase(captchaId)) {
             result.rejectValue("captcha", "InvalidCaptcha", "Invalid Entry");
         }
     }
-
 }
 
 
