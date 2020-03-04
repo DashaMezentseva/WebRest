@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -19,7 +20,6 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import java.util.ArrayList;
 
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -62,6 +62,8 @@ public class AdminControllerTest {
             .andExpect(status().isOk())
             .andExpect(model().attribute("users", userList))
             .andExpect(view().name("admin"));
+
+        verify(userService, atLeastOnce()).findAll();
     }
 
     @Test
@@ -75,6 +77,9 @@ public class AdminControllerTest {
             .andExpect(model().attributeExists("roles"))
             .andExpect(model().attributeExists("userDto"))
             .andExpect(view().name("edit"));
+
+        verify(userService, times(1)).findById(id);
+        verify(roleService, times(1)).findAll();
     }
 
 
@@ -86,6 +91,8 @@ public class AdminControllerTest {
             .andExpect(model().attributeExists("roles"))
             .andExpect(model().attributeExists("userDto"))
             .andExpect(view().name("add"));
+
+        verify(roleService, times(1)).findAll();
     }
 
     @Test
@@ -105,14 +112,15 @@ public class AdminControllerTest {
             .andExpect(model().attributeDoesNotExist("roles"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("admin?error=user+successfully+created"));
+
+        verify(userService, atLeastOnce()).create(any());
     }
 
     @Test
     public void testSubmitAddUserErrors() throws Exception {
         doNothing().when(userService).create(user);
         when(roleService.findAll()).thenReturn(new ArrayList<Role>());
-        when(userService.findByLogin(anyString())).thenReturn(user);
-        when(userService.findByEmail(anyString())).thenReturn(user);
+        when(userService.findAll()).thenReturn(new ArrayList<User>());
         mockMvc.perform(post("/add")
             .param("login", "login")
             .param("password", "password")
@@ -127,7 +135,10 @@ public class AdminControllerTest {
             .andExpect(model().attributeHasFieldErrors("userDto", "password"))
             .andExpect(status().isOk())
             .andExpect(view().name("add"));
-    }
 
+        verify(roleService, atLeastOnce()).findAll();
+        verify(userService, atLeastOnce()).findAll();
+
+    }
 
 }
