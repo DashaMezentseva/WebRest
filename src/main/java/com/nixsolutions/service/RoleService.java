@@ -1,46 +1,18 @@
 package com.nixsolutions.service;
 
 import com.nixsolutions.domain.Role;
-import com.nixsolutions.repository.RoleRepository;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 
-@Repository
-@Transactional(readOnly = true)
-@EnableTransactionManagement
-public class RoleService implements RoleDao{
+public interface RoleService {
+    void create(Role role);
 
-    @Autowired
-    private RoleRepository roleRepository;
+    void update(Role role);
 
-    @Transactional
-    public void create(Role role) {
-        roleRepository.saveAndFlush(role);
-    }
+    void remove(Role role);
 
-    @Transactional
-    public void update(Role role) {
-        roleRepository.saveAndFlush(role);
-    }
+    Role findByName(String name);
 
-    @Transactional
-    public void remove(Role role) {
-        roleRepository.delete(role);
-    }
+    List<Role> findAll();
 
-    public Role findByName(String name){
-        return roleRepository.findByName(name);
-    }
-
-    public List<Role> findAll() {
-        return roleRepository.findAll();
-    }
-
-    public Role findById(Long id){
-        return roleRepository.findByRoleId(id);
-    }
-
+    Role findById(Long id);
 }

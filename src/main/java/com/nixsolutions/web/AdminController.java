@@ -1,11 +1,9 @@
 package com.nixsolutions.web;
 
-import com.google.code.kaptcha.Constants;
 import com.nixsolutions.domain.User;
-import com.nixsolutions.dto.RegistrationUserDto;
 import com.nixsolutions.dto.UserDto;
-import com.nixsolutions.service.RoleDao;
-import com.nixsolutions.service.UserDao;
+import com.nixsolutions.service.RoleService;
+import com.nixsolutions.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -26,9 +24,9 @@ import org.springframework.web.servlet.ModelAndView;
 public class AdminController {
 
     @Autowired
-    private UserDao userService;
+    private UserService userService;
     @Autowired
-    private RoleDao roleService;
+    private RoleService roleService;
 
     @RequestMapping(value = "/admin", method = RequestMethod.GET)
     public ModelAndView homePage(ModelAndView modelAndView, HttpServletRequest req) {
@@ -55,7 +53,7 @@ public class AdminController {
 
         if (!isUniqueLogin(userDto)) {
             FieldError loginAlreadyUse = new FieldError("login", "login",
-                    "login already in use");
+                "login already in use");
             bindingResult.addError(loginAlreadyUse);
         }
 
@@ -73,13 +71,13 @@ public class AdminController {
 
         if (!passwordAgain.equals(userDto.getPassword())) {
             FieldError passwordNotEquals = new FieldError("password",
-                    "password", "password not equals");
+                "password", "password not equals");
             bindingResult.addError(passwordNotEquals);
         }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("error",
-                    bindingResult.getFieldError().getDefaultMessage());
+                bindingResult.getFieldError().getDefaultMessage());
             model.addAttribute("roles", roleService.findAll());
             model.addAttribute("userDto", userDto);
             return "add";
@@ -106,7 +104,7 @@ public class AdminController {
 
     @RequestMapping(value = "/delete", method = RequestMethod.GET)
     public ModelAndView delete(
-            HttpServletRequest req) {
+        HttpServletRequest req) {
         ModelAndView modelAndView = new ModelAndView("redirect:/admin");
         String loginToDelete = req.getParameter("userLogin");
         User user = userService.findByLogin(loginToDelete);
@@ -130,7 +128,7 @@ public class AdminController {
     protected String submitEdit(@Valid @ModelAttribute("userDto") UserDto userDto,
                                 BindingResult bindingResult, Model model,
                                 @RequestParam("passwordAgain") String passwordAgain
-            , @RequestParam("password") String password) {
+        , @RequestParam("password") String password) {
         String login = userDto.getLogin();
         User user = userService.findByLogin(login);
         userDto.setUserId(user.getUserId());
@@ -140,7 +138,7 @@ public class AdminController {
             passwordAgain = user.getPassword();
         } else if (!passwordAgain.equals(password)) {
             FieldError passwordNotEquals = new FieldError("password",
-                    "password", "password not equals");
+                "password", "password not equals");
             bindingResult.addError(passwordNotEquals);
         }
 
@@ -148,7 +146,7 @@ public class AdminController {
             model.addAttribute("roles", roleService.findAll());
             model.addAttribute("logintoedit", login);
             model.addAttribute("error",
-                    bindingResult.getFieldError().getDefaultMessage());
+                bindingResult.getFieldError().getDefaultMessage());
             return "edit";
         }
         try {
@@ -163,4 +161,3 @@ public class AdminController {
     }
 
 }
-

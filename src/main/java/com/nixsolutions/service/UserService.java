@@ -1,52 +1,20 @@
 package com.nixsolutions.service;
 
 import com.nixsolutions.domain.User;
-import com.nixsolutions.repository.UserRepository;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.transaction.annotation.Transactional;
 
-@Repository
-@Transactional(readOnly = true)
-@EnableTransactionManagement
-public class UserService implements UserDao{
+public interface UserService {
+    void create(User user);
 
-    @Autowired
-    private UserRepository userRepository;
+    void update(User user);
 
-    @Transactional
-    public void create(User user) {
-        userRepository.saveAndFlush(user);
-    }
+    void remove(User user);
 
-    @Transactional
-    public void update(User user) {
-        userRepository.saveAndFlush(user);
-    }
+    List<User> findAll();
 
-    @Transactional
-    public void remove(User user) {
-        userRepository.delete(user);
-    }
+    User findByLogin(String login);
 
+    User findByEmail(String email);
 
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    public User findByLogin(String login) {
-        return userRepository.findByLogin(login);
-    }
-
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public User findById(Long id) {
-        return userRepository.findByUserId(id);
-    }
+    User findById(Long id);
 }
-
-

@@ -1,7 +1,7 @@
 package com.nixsolutions.dto;
 
 import com.nixsolutions.domain.Role;
-import com.nixsolutions.service.RoleDao;
+import com.nixsolutions.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.Formatter;
 
@@ -10,7 +10,7 @@ import java.util.Locale;
 public class RoleFormatter implements Formatter<Role> {
 
     @Autowired
-    private RoleDao roleService;
+    private RoleService roleService;
 
     private static final String PREFIX = "ROLE_";
 

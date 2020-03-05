@@ -1,19 +1,17 @@
 package com.nixsolutions.web;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 import com.google.code.kaptcha.Constants;
 import com.nixsolutions.domain.User;
 import com.nixsolutions.dto.RegistrationUserDto;
 import com.nixsolutions.dto.UserDto;
-import com.nixsolutions.service.RoleDao;
-import com.nixsolutions.service.UserDao;
+import com.nixsolutions.service.RoleService;
+import com.nixsolutions.service.UserService;
 
 import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,9 +28,9 @@ import org.springframework.web.servlet.ModelAndView;
 public class LoginController {
 
     @Autowired
-    private UserDao userService;
+    private UserService userService;
     @Autowired
-    private RoleDao roleService;
+    private RoleService roleService;
 
     @RequestMapping(value = {"/login", "/"}, method = GET)
     public String showLogin(@RequestParam(value = "error", required = false) String error,
