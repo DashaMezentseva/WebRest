@@ -14,34 +14,39 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Email;
 import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.test.annotation.IfProfileValue;
 
+
+//@Entity
+//@Table(
+//    name = "Users",
+//    uniqueConstraints = {@UniqueConstraint(columnNames = {"login", "email"})}
+//)
 @Data
-@Entity
-@Table(
-    name = "User",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"login", "email"})}
-)
+@Document(collection = "users")
 public class User {
 
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+//    @Column(name = "userId")
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "userId")
     private Long userId;
-    @Column(name = "login", nullable = false, unique = true)
+//    @Column(name = "login", nullable = false, unique = true)
     private String login;
-    @Column(name = "password", nullable = false)
+//    @Column(name = "password", nullable = false)
     private String password;
-    @Column(name = "email", nullable = false, unique = true)
-    @Email
+//    @Column(name = "email", nullable = false, unique = true)
+//    @Email
     private String email;
-    @Column(name = "firstName", nullable = false)
+//    @Column(name = "firstName", nullable = false)
     private String firstName;
-    @Column(name = "lastName", nullable = false)
+//    @Column(name = "lastName", nullable = false)
     private String lastName;
-    @Column(name = "birthday", nullable = false)
+//    @Column(name = "birthday", nullable = false)
     private Date birthday;
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "roleId")
+//    @OneToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "roleId")
     private Role role;
 
     public User() {

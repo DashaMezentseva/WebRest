@@ -27,6 +27,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
+//            .antMatchers("/swagger-ui.html").permitAll()
+//            .antMatchers("/swagger-resources/**").permitAll()
+//            .antMatchers("/v2/api-docs").permitAll()
+//            .antMatchers("/webjars/**").permitAll()
             .antMatchers("/admin").hasRole("ADMIN")
             .antMatchers("/add/**").hasRole("ADMIN")
             .antMatchers("/edit/**").hasRole("ADMIN")
@@ -40,7 +44,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
             .logout().logoutUrl("/logout")
             .logoutSuccessUrl("/login").permitAll().and().csrf().disable();
-
     }
 
 }

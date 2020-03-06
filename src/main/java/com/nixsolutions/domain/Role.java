@@ -9,18 +9,19 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Entity
-@Table(name = "Role")
+@Document(collection = "roles")
 public class Role {
 
+
+    //    @GeneratedValue(strategy = GenerationType.AUTO)
+    //    @Column(name = "roleId")
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "roleId")
     private Long roleId;
-    @Column(name = "name", nullable = false)
-    @NotNull
+//    @Column(name = "name", nullable = false)
+//    @NotNull
     private String name;
 
     public Role() {
